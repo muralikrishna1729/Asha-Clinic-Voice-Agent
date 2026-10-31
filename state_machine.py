@@ -62,7 +62,8 @@ def check_tool_call(session, tool_name, args):
             return False, "patient name not collected yet"
 
     if tool_name == "cancel_appointment":
-        if args.get("appointment_id") != session.chosen_appointment_id:
+        chosen = session.chosen_appointment_id
+        if chosen is None or args.get("appointment_id") != chosen:
             return False, "the caller did not choose that appointment"
 
     return True, ""
