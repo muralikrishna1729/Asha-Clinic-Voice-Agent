@@ -29,7 +29,7 @@ def run_tool(session, tool_name, args, now=None):
     # 3. Run the real tool. Phone and name come from the session.
     try:
         if tool_name == "get_available_slots":
-            raw = tools.get_available_slots(**args)
+            raw = tools.get_available_slots(**args, now=now)
         elif tool_name == "book_slot":
             raw = tools.book_slot(args["slot_id"], session.patient_name, session.phone, now=now)
         elif tool_name == "get_my_appointments":

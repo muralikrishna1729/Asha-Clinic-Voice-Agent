@@ -2,14 +2,16 @@ from db import get_connection
 from datetime import datetime
 from config import CLINIC_NAME, CLINIC_ADDRESS
 
-def get_available_slots(speciality=None, date=None, limit=3):
-    """Return free slots, earliest first.
+def get_available_slots(speciality=None, date=None, limit=3, now=None):
+    """Return free slots that start after 'now', earliest first..
     speciality: e.g. 'Dermatology' (optional)
     date: 'YYYY-MM-DD' (optional)
     limit: how many to return (a voice agent should not read 30 slots)
+    now: the current time (for testing purposes)
     """
-    sql = "SELECT id, doctor, speciality, start_time FROM slots WHERE status = 'free'"
-    params = []
+    now = now or datetime.now()
+    sql = "SELECT id, doctor, speciality, start_time FROM slots WHERE status = 'free' AND start_time > ?"
+    params = [now.strftime("%Y-%m-%d %H:%M")]
 
     if speciality:
         sql += " AND LOWER(speciality) = LOWER(?)"
@@ -130,23 +132,27 @@ if __name__ == "__main__":
 
     # print("Unknown speciality:", get_available_slots(speciality="Cardiology"))
 
-    from seed import seed
-    from config import NOW
+    # from seed import seed
+    # from config import NOW
 
-    seed()  # fresh data every run
+    # seed()  # fresh data every run
 
-    print("1. Priya books slot 1:")
-    print("  ", book_slot(1, "Priya", "9999900001", now=NOW))
+    # print("1. Priya books slot 1:")
+    # print("  ", book_slot(1, "Priya", "9999900001", now=NOW))
 
-    print("2. Ravi tries the same slot 1:")
-    print("  ", book_slot(1, "Ravi", "9999900002", now=NOW))
+    # print("2. Ravi tries the same slot 1:")
+    # print("  ", book_slot(1, "Ravi", "9999900002", now=NOW))
 
-    print("3. Slot 1 should be gone from the free list:")
-    print("  ", [s["id"] for s in get_available_slots(limit=5)])
+    # print("3. Slot 1 should be gone from the free list:")
+    # print("  ", [s["id"] for s in get_available_slots(limit=5)])
 
-    print("4. Outbox and appointments:")
-    with get_connection() as conn:
-        for r in conn.execute("SELECT phone, message FROM outbox"):
-            print("  ", dict(r))
-        print("   appointments:", conn.execute("SELECT COUNT(*) FROM appointments").fetchone()[0])
-        print("   outbox rows :", conn.execute("SELECT COUNT(*) FROM outbox").fetchone()[0])
+    # print("4. Outbox and appointments:")
+    # with get_connection() as conn:
+    #     for r in conn.execute("SELECT phone, message FROM outbox"):
+    #         print("  ", dict(r))
+    #     print("   appointments:", conn.execute("SELECT COUNT(*) FROM appointments").fetchone()[0])
+    #     print("   outbox rows :", conn.execute("SELECT COUNT(*) FROM outbox").fetchone()[0])
+
+    from datetime import datetime
+    print([s["id"] for s in get_available_slots(limit=3, now=datetime(2026, 11, 2, 9, 0))])
+    print([s["id"] for s in get_available_slots(limit=3, now=datetime(2026, 11, 3, 10, 30))])
